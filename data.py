@@ -48,35 +48,27 @@ skupina_oboru = {
         "91": "Teorie vojenského umění",
     }
 
+
 def transform_data():
     df = pd.read_csv("data/prf_uchazeci.csv")
-    
+
     df["KOLO_PRIHLASKY"] = df["PR_NAZEV"].str[-1].astype(int)
-    # ciselnik ze stagu
-    url = "https://ws.ujep.cz/ws/services/rest2/ciselniky/getCiselnik"
 
-    vars = {
-        "domena": "OBOR_SS",
-        "outputFormat": "CSV",
-        "outputFormatEncoding": "UTF-8",
-    }
-
-    response = requests.get(url, params=vars)
-    ciselnik = pd.read_csv(StringIO(response.text), sep=";")
-
-    df = df.merge(
-        ciselnik[["key", "nazev"]], left_on="CIS_OBORU", right_on="key")
     df['skupina_oboru'] = df['CIS_OBORU'].str.extract(r'(\d{2})')
-    df['stupen_vzdelani'] = df['CIS_OBORU'].str.extract(r'([A-Za-z])')    
-    
+    df['stupen_vzdelani'] = df['CIS_OBORU'].str.extract(r'([A-Za-z])')
+
     df['skupina_oboru'].replace(skupina_oboru, inplace=True)
     df['stupen_vzdelani'].replace(stupen_vzdelani, inplace=True)
-    
-    df["round"] = df["PR_NAZEV"].str[-1]
-    
+
+
+    df["ROK_NAR"].replace(0, None, inplace=True)
+
     return df
 
 
 if __name__=="__main__":
     df = transform_data()
-    df.to_csv("uchazeci_transformed.csv")
+    df.to_csv("data/uchazeci_transformed.csv", index=False)
+
+    print("DataFrame length: ", len(df))
+    print(df.head())
