@@ -87,3 +87,7 @@ virtualenv @ file:///croot/virtualenv_1674752100526/work
 wcwidth==0.2.9
 webencodings==0.5.1
 zipp @ file:///croot/zipp_1672387121353/work
+
+geojson
+polars[all]
+geopandas
