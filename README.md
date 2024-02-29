@@ -8,4 +8,3 @@
 - <https://www.infoabsolvent.cz/Obory/1#filtr-main>
 - <https://www.vyberskoly.cz/jak-se-vyznat-v-kodech-oboru>
 
-## TODO

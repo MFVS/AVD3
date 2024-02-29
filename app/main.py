@@ -61,3 +61,18 @@ with obor_tab:
     )
 
     st.plotly_chart(kolo_fig)
+
+with poloha_tab:
+    col1, col2 = st.columns(2)
+    poloha = col1.selectbox("Vyberte filtr", ["Stát"])
+    rok = col2.selectbox("Vyberte rok", data["ROK_PR"].unique())
+
+    match poloha:
+        case "Stát":
+            staty_bez_cr = data.loc[(data["STAT_OBCANSTVI"] != "Česká republika") & (data["ROK_PR"] == rok)]
+            staty_counts = staty_bez_cr["STAT_OBCANSTVI"].value_counts()
+            obory_counts = staty_bez_cr["PR_NAZEV"].value_counts()
+            fig = px.bar(staty_counts, x=staty_counts.index, y=staty_counts.values)
+            st.plotly_chart(fig, use_container_width=True)
+            fig = px.bar(obory_counts, x=obory_counts.index, y=obory_counts.values)
+            st.plotly_chart(fig, use_container_width=True)
