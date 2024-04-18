@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import geopandas as gpd
+import folium
 
 
 data = pd.read_csv("data/uchazeci_transformed.csv")
@@ -14,7 +16,7 @@ st.set_page_config(
 st.title("Uchazeči UJEP PŘF")
 
 
-okruhy_tab, obor_tab, poloha_tab = st.tabs(["Okruhy", "Podle oboru", "Cizí státy"])
+okruhy_tab, obor_tab, poloha_tab, mapicky_tab = st.tabs(["Okruhy", "Podle oboru", "Cizí státy", "Mapičky"])
 
 
 with okruhy_tab:
@@ -125,8 +127,12 @@ with poloha_tab:
         submit_button = st.form_submit_button(label="Zobrazit")
 
     staty_bez_cr = data.loc[(data["STAT_OBCANSTVI"] != "Česká republika") & (data["ROK_PR"] == rok)]
+    st.write(staty_bez_cr)
     staty_counts = staty_bez_cr["STAT_OBCANSTVI"].value_counts()
     obory_counts = staty_bez_cr["PR_NAZEV"].value_counts()
+    
+    st.write(staty_counts)
+    st.write(obory_counts)
     
     fig = px.bar(staty_counts, x=staty_counts.index, y=staty_counts.values)
     st.plotly_chart(fig, use_container_width=True)
@@ -134,3 +140,10 @@ with poloha_tab:
     st.header("Počet uchazečů dle oborů")
     fig = px.bar(obory_counts, x=obory_counts.index, y=obory_counts.values)
     st.plotly_chart(fig, use_container_width=True)
+
+
+with mapicky_tab:
+    st.header("Mapičky")
+    st.write("Tady budou mapičky")
+    
+    gdf = gpd.read_file("./vendor/geo-countries/data/countries.geojson")
