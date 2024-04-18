@@ -13,3 +13,5 @@ Využívá ollama LLM serveru. Návod k jejímu spuštění je [zde](https://oll
 ## TODO
 
 - rozdil mezi gymnaziem a lyceem
+- <https://www.infoabsolvent.cz/Obory/1#filtr-main>
+- <https://www.vyberskoly.cz/jak-se-vyznat-v-kodech-oboru>
