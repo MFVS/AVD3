@@ -6,6 +6,7 @@ import folium
 
 
 data = pd.read_csv("data/uchazeci_transformed.csv")
+colors = ["#007582", "#FFD700", "#87CEEB", "#50C878", "#FFDAB9"]
 
 st.set_page_config(
     page_title="Uchazeči UJEP PŘF",
@@ -31,8 +32,11 @@ with okruhy_tab:
 
     st.dataframe(pivot_table, use_container_width=True)
 
-    fig_okruh1 = px.bar(okruh1_counts, x=okruh1_counts.index, y=okruh1_counts.values, color_discrete_sequence=["#007582"])
-    fig_okruh2 = px.bar(okruh2_counts, x=okruh2_counts.index, y=okruh2_counts.values, color_discrete_sequence=["#007582"])
+    fig_okruh1 = px.bar(okruh1_counts, x=okruh1_counts.index, y=okruh1_counts.values, color_discrete_sequence=colors)
+    fig_okruh1.update_layout(showlegend=False)
+    fig_okruh2 = px.bar(okruh2_counts, x=okruh2_counts.index, y=okruh2_counts.values, color_discrete_sequence=colors)
+    fig_okruh2.update_layout(showlegend=False)
+
     st.subheader("Okruhy 1")
 
     col1, col2, col3 = st.columns([3, 1, 1])
@@ -62,7 +66,7 @@ with obor_tab:
     with st.form(key="form"):
         col1, col2 = st.columns(2)
         obor = col1.selectbox("Vyberte obor", data["CZ_NAZEV"].unique())
-        rok = col2.selectbox("Vyberte rok", ["Všechny"] + data["ROK_PR"].unique().tolist())
+        rok = col2.selectbox("Vyberte rok", ["Vše"] + data["ROK_PR"].unique().tolist())
         
         not_cr = col1.checkbox("Zobrazit bez ČR")
         pouze_cr = col2.checkbox("Zobrazit pouze ČR")
@@ -74,7 +78,7 @@ with obor_tab:
         st.stop()
 
     new_data = data[(data["CZ_NAZEV"] == obor)]
-    if rok != "Všechny":
+    if rok != "Vše":
         new_data = new_data[(new_data["ROK_PR"] == rok)]
 
     stat = new_data["STAT_BYDLISTE"].value_counts()
@@ -91,15 +95,23 @@ with obor_tab:
     if stat.empty:
         st.warning("Žádná data pro zvolené parametry.")
     else:
-        col1, col2 = st.columns(2)
         
         if not pouze_cr:
-            fig = px.bar(stat, x=stat.index, y=stat.values, color_discrete_sequence=["#007582"])
-            pie = px.pie(stat, values=stat.values, names=stat.index, color_discrete_sequence=["#007582", "#FFD700", "#87CEEB", "#50C878", "#FFDAB9"])
+            fig = px.bar(stat, x=stat.index, y=stat.values,color=stat.index, color_discrete_sequence=colors)
+            pie = px.pie(stat, values=stat.values, names=stat.index, color_discrete_sequence=colors)
 
-
-            col1.plotly_chart(fig)
-            col2.plotly_chart(pie)
+            if len(stat) == 1:
+                st.info("Uchazeči pouze z jednoho státu. " + stat.index[0])
+                st.metric("Počet uchazečů", stat.values[0])
+            else:
+                sloupce_tab, kolace_tab = st.tabs(["Sloupcový", "Koláčový"])
+                
+                with sloupce_tab:
+                    st.plotly_chart(fig, use_container_width=True)
+                with kolace_tab:
+                    st.plotly_chart(pie, use_container_width=True)
+        
+        col1, col2 = st.columns(2)
 
         vzdelani = new_data["stupen_vzdelani"].value_counts()
         vzdelani_fig = px.bar(
@@ -108,7 +120,7 @@ with obor_tab:
             y=vzdelani.values,
             labels={"x": "Stupeň vzdělání", "y": "Počet uchazečů"},
             title="Počet uchazečů dle stupně vzdělání",
-            color_discrete_sequence=["#007582", "#FFD700", "#87CEEB", "#50C878", "#FFDAB9"]
+            color_discrete_sequence=colors
         )
         vzdelani_fig.update_layout(xaxis=dict(tickmode="array", tickvals=[], ticktext=[]))
 
@@ -120,43 +132,63 @@ with obor_tab:
             kolo,
             x=kolo.index,
             y=kolo.values,
-            labels={"x": "Kolo přihlášky", "y": "Počet uchazečů"},
+            labels={"KOLO_PRIHLASKY": "Kolo přihlášky", "y": "Počet uchazečů"},
             title="Počet uchazečů dle kola přihlášky",
-            color_discrete_sequence=["#007582", "#FFD700", "#87CEEB", "#50C878", "#FFDAB9"]
+            color_discrete_sequence=colors
         )
+        kolo_fig.update_layout(xaxis=dict(tickmode="linear", tickvals=[1, 2], ticktext=["1. kolo", "2. kolo"]))
 
-        col2.plotly_chart(kolo_fig)
+        col2.plotly_chart(kolo_fig, use_container_width=True)
         
         st.write("Mapy")
 
 with poloha_tab:
     st.header("Počet uchazečů dle bydliště (bez ČR)")
-    staty_bez_cr = data.loc[(data["STAT_BYDLISTE"] != "Česká republika")]
+    staty_df = data.loc[(data["STAT_BYDLISTE"] != "Česká republika")]
 
     with st.form(key="form2"):
         col1, col2 = st.columns(2)
-        poloha = col1.selectbox("Vyberte filtr", staty_bez_cr["STAT_BYDLISTE"].unique())
-        rok = col2.selectbox("Vyberte rok", data["ROK_PR"].unique())
+        poloha = col1.selectbox("Vyberte bzdliště", ["Vše"] + staty_df["STAT_BYDLISTE"].unique().tolist())
+        rok = col2.selectbox("Vyberte rok", ["Vše"] + data["ROK_PR"].unique().tolist())
 
         submit_button = st.form_submit_button(label="Zobrazit")
 
-    staty_df = staty_bez_cr[(staty_bez_cr["STAT_BYDLISTE"] == poloha) & (staty_bez_cr["ROK_PR"] == rok)]
+    if poloha != "Vše":
+        staty_df = staty_df[(staty_df["STAT_BYDLISTE"] == poloha)]
+    if rok != "Vše":
+        staty_df = staty_df[(staty_df["ROK_PR"] == rok)]
     
     if staty_df.empty:
         st.warning("Žádná data pro zvolené parametry.")
     
     else:
+        col1, col2 = st.columns(2)
+        
+        col1.metric("Celkový počet uchazečů", staty_df.shape[0])
+        
         obory = staty_df["CZ_NAZEV"].value_counts()
         
-        fig_obory = px.bar(
-            obory,
-            x=obory.index,
-            y=obory.values,
-            labels={"x": "Obor", "y": "Počet uchazečů"},
-            color_discrete_sequence=["#007582", "#FFD700", "#87CEEB", "#50C878", "#FFDAB9"],
-        )
-        
-        st.plotly_chart(fig_obory, use_container_width=True)
+        bars_tab, pie_tab = st.tabs(["Sloupcový", "Koláčový"])
+        with bars_tab:
+            fig_obory = px.bar(
+                obory,
+                x=obory.index,
+                y=obory.values,
+                labels={"CZ_NAZEV": "Obor", "y": "Počet uchazečů"},
+                color=obory.index,
+                color_discrete_sequence=colors,
+            )
+            fig_obory.update_layout(showlegend=False)
+            
+            st.plotly_chart(fig_obory, use_container_width=True)
+        with pie_tab:
+            fig_obory_pie = px.pie(
+                obory,
+                values=obory.values,
+                names=obory.index,
+                color_discrete_sequence=colors
+            )
+            st.plotly_chart(fig_obory_pie, use_container_width=True)
         
 with mapicky_tab:
     st.header("Mapičky")
