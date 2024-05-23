@@ -8,7 +8,15 @@
 
 ## Návod k použití
 
-Využívá ollama LLM serveru. Návod k jejímu spuštění je [zde](https://ollama.ai/blog/ollama-is-now-available-as-an-official-docker-image) a dokumentace HTTP API je [zde](https://github.com/jmorganca/ollama/blob/main/docs/api.md)
+Obrázky map jsou generovány v `podle_mest.ipynb` a `podle_statu.ipynb`.
+
+Prerekvizita ke spuštění je python.
+Aplikace se spouští příkazy `pip install -r requirements.txt` a `streamlit run streamlit.py`.
+
+## Galerie
+
+![Mapa měst](mesta.png "Mapa měst")
+![Mapa států](staty.png "Mapa států")
 
 ## TODO
 

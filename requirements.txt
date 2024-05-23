@@ -91,3 +91,4 @@ zipp @ file:///croot/zipp_1672387121353/work
 geojson
 polars[all]
 geopandas
+selenium
